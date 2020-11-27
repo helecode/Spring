@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+					http://www.springframework.org/schema/beans/spring-beans.xsd
+					http://www.springframework.org/schema/aop
+					http://www.springframework.org/schema/aop/spring-aop-3.1.xsd"
+default-lazy-init="true">
+
+	<bean id="springFirstBean" class="S1116SpringFirst.S1SpringFirstBean" >
+		<property name="name" value="liguanmeng"></property>
+		<property name="num" value="999"></property>
+	</bean>
+	<!-- 单例和工厂属性 -->
+	<bean id="S4Bean" class="S1117SpringIOCDI.S4Bean" scope="singleton" factory-method="getInstance"  
+			destroy-method="clone">
+	</bean>
+	<!-- 引用bean -->
+	<bean id="s1DIBean" class="S1117SpringIOCDI.S1DIBean">
+		<property name="name" value="namevalue"></property>
+		<property name="pass" value="passvalue"></property>
+	</bean>
+	<bean id="s2DIBean" class="S1117SpringIOCDI.S2DIBean" >
+		<property name="id" value="123"></property>
+		<property name="job" value="经理"></property>
+		<property name="DIBean" ref="s1DIBean"></property>
+	</bean>
+	<!-- 构造注入1：通过构造方法的参数名来注入值 -->
+	<bean id="date" class="java.util.Date"></bean>
+	<bean id="s1Student1" class="S1118BeanDI.S1BeanDIStudent">
+		 <!--通过参数名-->
+		<constructor-arg name="no" value="100"></constructor-arg>
+		 <!--通过参数索引值-->
+		<constructor-arg index="1" value="王五"></constructor-arg>
+		 <!--通过参数的数据类型-->
+		<constructor-arg type="double" value="45.8"></constructor-arg>
+		<constructor-arg name="birthday"  value="1989/12/3 13:22:22"  ></constructor-arg>
+	</bean>
+	<!-- 构造注入2：通过构造方法的参数索引位置给属性注入值 -->
+	<bean id="s1Student2" class="S1118BeanDI.S1BeanDIStudent">
+		<constructor-arg index="0" value="101"></constructor-arg>
+		<constructor-arg index="1" value="王五"></constructor-arg>
+		<constructor-arg index="2" value="45.7"></constructor-arg>
+		<constructor-arg index="3"  value="1989/12/3 13:22:22"  ></constructor-arg>
+	</bean>
+	<!-- 构造注入3：通过定构造方法的参数类型找到对应的参数，再来注入值 -->
+	<bean id="s1Student3" class="S1118BeanDI.S1BeanDIStudent">
+		<constructor-arg type="int" value="102"></constructor-arg>
+		<constructor-arg type="java.lang.String" value="赵六"></constructor-arg>
+		<constructor-arg type="double" value="45.8"></constructor-arg>
+		<constructor-arg type="java.util.Date"  value="1989/12/3 13:22:22"  ></constructor-arg>
+	</bean>
+	<!-- 命名空间注入 -->
+	<bean id="s1Student4" class="S1118BeanDI.S1BeanDIStudent" p:name="胜七"></bean>
+	<!-- 数组，集合注入 -->
+	<bean id="s3ArrayCollection" class="S1118BeanDI.S3ArrayCollection" >
+		<!-- 数组注入 -->
+		<property name="a">
+			<array>
+				<value>1</value>
+				<value>2</value>
+				<value>3</value>
+			</array>
+		</property>
+		<!-- list注入 -->
+		<property name="list">
+			<list>
+				<value>aaa</value>
+				<value>bbb</value>
+				<value>aaa</value>
+			</list>
+		</property>
+		<!-- set注入 -->
+		<property name="set">
+			<set>
+				<value>1.1</value>
+				<value>2.2</value>
+				<value>3.3</value>
+			</set>
+		</property>
+				<!-- map注入 -->
+		<property name="map">
+			<map>
+				<entry key="a" value="1"></entry>
+				<entry key="b" value="2"></entry>
+				<entry key="c" value="3"></entry>
+			</map>
+		</property>
+		
+	</bean>
+	<!-- 注册配置aop切面 -->
+	<!-- 注册前置通知切面 -->
+		<bean id="methodBeforeAdvice" class="S1119AOPDI.S1MethodBeforeAdvice"></bean>
+	<!-- 注册后置通知切面 -->
+		<bean id="afterReturningAdvice" class="S1119AOPDI.S2AfterReturningAdvice"></bean>
+	<!-- 注册环绕通知切面 -->
+		<bean id="interceptorMethod" class="S1119AOPDI.S3InterceptorMethod"></bean>
+		<!-- aop测试类的bean -->
+		<bean id="aopTest" class="S1119AOPDI.S5Test"></bean>
+	<!-- AOP配置 -->
+	<aop:config>
+	  <!-- 配置切点 -->
+		<aop:pointcut id="pointcut"
+			expression="execution(public * S1119AOPDI.*.*())" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="methodBeforeAdvice" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="afterReturningAdvice" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="interceptorMethod" />
+	</aop:config>
+	<!-- 注解实现AOP -->
+	<bean class="S1119AOPDI.S6annoAround"></bean>
+	<aop:aspectj-autoproxy />
+	
+	<!-- 配置数据源 -->
+	<bean name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>com.mysql.jdbc.Driver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:mysql://localhost:3306/student</value>
+		</property>
+		<property name="username" value="root"></property>
+		<property name="password" value="123456"></property>
+	</bean>
+	<!-- 注册dao实现类 -->
+	<bean id="messageDao" class="S1120Dao.S3MessageDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+		<!-- 配置服务类引用dao实现 -->
+	<bean id="tRun" class="S1120JDBCTransaction.S1TransactionRun">
+		<property name="messageDao" ref="messageDao"></property>
+	</bean>
+		<!-- Jdbc事务管理 -->
+	<bean id="jdbcTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>	
+	</bean>
+	<!-- Hibernate事务将DataSourceTransactionManager类换成HibernateTransactionManager
+		并将引入dataSource换成sessionFactory -->
+	<!-- 为所有的方法配置事务 -->
+	<bean id="transactionAttributeSource"
+		class="org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource">
+		<property name="properties">
+			<props><!-- 此时的*表示通配符 -->
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+	
+		<bean id="transactionRun"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="jdbcTransactionManager" />
+		<!-- <property name="target" ref="messageDao"></property> 不能直接将dao实现加入事务-->
+			<property name="target" ref="tRun"></property>
+		<property name="transactionAttributeSource" ref="transactionAttributeSource" />
+	</bean>
+	<!-- spring的orm模块，对hibernate的支持 -->
+	<!-- 注册sessionFactory -->
+	<!-- 使用注解的方式使用AnnotationSessionFactory -->
+	<!-- 使用配置文件的方式使用LocalSessionFactoryBean -->
+	<bean name="sessionFactory"  class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" destroy-method="destroy">
+		<!-- 引入数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 引入注解实体类的class 也可直接引入注解的实体包-->
+		<property name="annotatedClasses">
+			<list>
+				<value>S1121SpringStruts2Hibernate.S1Cat</value>
+				<!-- 若有多个实体类，则都加进来 -->
+				<!-- 使用映射关系 -->
+				<!-- <value>com/bean/Cat.hbm.xml</value> -->
+			</list>
+		</property>
+		<!-- 配置Hibernate中的属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate,dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+	</bean>
+	<!-- dao实现引用sessionFactory -->
+	<bean name="catDao" class="S1121SpringStruts2Hibernate.S2CatDao">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+		<!-- 配置Action对应的bean,scope="prototype"表示多例模式，
+	该Action对应的类可以产生多个实例 -->
+	<bean  id="catAction"  class="S1121SpringStruts2Hibernate.S4CatAction" scope="prototype">
+	   <property name="SSHcatDao"  ref="catDao"></property>
+	</bean>
+</beans>

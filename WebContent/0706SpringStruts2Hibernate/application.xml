@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:aop="http://www.springframework.org/schema/aop"
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+					http://www.springframework.org/schema/beans/spring-beans.xsd
+					http://www.springframework.org/schema/aop
+					http://www.springframework.org/schema/aop/spring-aop-3.1.xsd"
+default-lazy-init="true">
+
+	<bean id="springFirstBean" class="T0630SpringFirst.T01SpringFirstBean">
+		<property name="name" value="liguanmeng"></property>
+		<property name="num" value="999"></property>
+	</bean>
+	
+	<bean id="t01DIbean" class="T0630SpringIOCDI.T01DIBean">
+		<property name="name" value="namevalue"></property>
+		<property name="pass" value="passvalue"></property>
+	</bean>
+	<bean id="t02DIbean" class="T0630SpringIOCDI.T02DIBean">
+		<property name="id" value="123"></property>
+		<property name="job" value="经理"></property>
+		<property name="DIBean" ref="t01DIbean"></property>
+	</bean>
+	
+	<bean id="t04Bean" class="T0630SpringIOCDI.T04Bean" scope="prototype" factory-method="getInstance" destroy-method="clone" depends-on="t01DIbean">
+	</bean>
+
+	<!-- 构造注入 -->
+	<bean id="construct" class="T0702ConstructorListDI.T01ConstructDI">
+		<constructor-arg name="id" value="1" type="int"></constructor-arg>
+		<constructor-arg name="score" value="11" type="double"></constructor-arg>
+		<constructor-arg name="password" value="111" type="java.lang.String"></constructor-arg>
+		<constructor-arg name="firstBean" ref="springFirstBean"></constructor-arg>
+	</bean>
+	<!-- 命名空间注入 -->
+	<bean id="NameSpace" class="T0702ConstructorListDI.T01ConstructDI" p:score="22" p:password="333" p:firstBean-ref="springFirstBean">
+	</bean>
+	<bean id="methodBeforeAdvice" class="T0701AOPDI.T01MethodBeforeAdvice"></bean>
+	<bean id="afterReturningAdvice" class="T0701AOPDI.T02AfterReturningAdvice"></bean>
+	<bean id="interceptorMethod" class="T0701AOPDI.T03InterceptorMethod"></bean>
+	
+	<!-- 数组，集合注入 -->
+	<bean id="arrayList" class="T0702ConstructorListDI.T02ArrayList" >
+		<!-- 数组注入 -->
+		<property name="a">
+			<array>
+				<value>1</value>
+				<value>2</value>
+				<value>3</value>
+			</array>
+		</property>
+		<!-- list注入 -->
+		<property name="list">
+			<list>
+				<value>aaa</value>
+				<value>bbb</value>
+				<value>ccc</value>
+			</list>
+		</property>
+		<!-- set注入 -->
+		<property name="set">
+			<set>
+				<value>1.1</value>
+				<value>2.2</value>
+				<value>3.3</value>
+			</set>
+		</property>
+		<!-- map注入 -->
+		<property name="map">
+			<map>
+				<entry key="a" value="1"></entry>
+				<entry key="b" value="2"></entry>
+				<entry key="c" value="3"></entry>
+			</map>
+		</property>
+	</bean>
+	
+	<!-- DAO模块 -->
+	<bean name="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/personnel"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="123456"></property>
+	</bean>
+	
+	<bean id="mssageService" class="T0702SpringDao.T02MessageService">
+	<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- JDBC 事务管理 -->
+	<bean id="jdbcTransactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource">
+		</property>
+	</bean>
+		<!-- spring管理Hibernate事务 -->
+	<bean id="hibernateTransactionManager"
+		class="org.springframework.jdbc.datasource.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 为所有的方法配置事务 -->
+	<bean id="transactionAttributeSource"
+		class="org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource">
+		<property name="properties">
+			<props><!-- 此时的*表示通配符 -->
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="transactionRun"
+		class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+		<property name="transactionManager" ref="jdbcTransactionManager" /><!-- 配置jdbc管理事务或是Hibernate管理事务 -->
+		<property name="target">
+			<bean class="T0703TransactionManager.T02TransactionRun"><!-- 内部 bean -->
+				<property name="dataSource" ref="dataSource"></property>
+			</bean><!-- 此时将一个匿名的bean注入到target中 -->
+		</property>
+		<property name="transactionAttributeSource" 
+		ref="transactionAttributeSource" />
+	</bean>
+
+<!-- spring的orm模块，对hibernate的支持 -->
+<!-- 使用注解的方式产生白使用AnnotationSessionFactory -->
+	<bean name="sessionFactory"  class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" destroy-method="destroy">
+		<!-- 引入数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 引入注解实体类的class 也可直接引入注解的实体包-->
+		<property name="annotatedClasses">
+			<list>
+				<value>T0704ORM.T01ORMCat</value>
+			</list>
+		</property>
+		<!-- 配置Hibernate中的属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate,dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean name="catDao" class="T0704ORM.T02ORMDao">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- ssh的测试 -->
+	<bean name="SSHcatDao" class="T0706SpringStruts2Hibernate.T02CatDao">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+		
+		<!-- 测试类的bean -->
+	<bean id="aopTest" class="T0701AOPDI.T05Test"></bean>
+	<!-- AOP配置 -->
+	<aop:config>
+	  <!-- 指定切入点 -->
+		<aop:pointcut id="pointcut"
+			expression="execution(public * T0701AOPDI.*.*())" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="methodBeforeAdvice" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="afterReturningAdvice" />
+		<aop:advisor pointcut-ref="pointcut" advice-ref="interceptorMethod" />
+	</aop:config>
+	<bean class="T0701AOPDI.T06annoAround"></bean>
+	<aop:aspectj-autoproxy />
+	
+</beans>
